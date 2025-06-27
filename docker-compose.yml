@@ -1,19 +1,27 @@
 services:
   app:
-    build: .
+    image: amazoncorretto:21-alpine
     ports:
       - "8080:8080"
     restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres_db
       SPRING_DATASOURCE_USERNAME: postgres_username
       SPRING_DATASOURCE_PASSWORD: postgres_password
+    volumes:
+# 本地 debug，挂载 build 下目录
+      - ./build/libs:/app
+# 生产环境，挂载根目录
+#      - ~/app:/app
+    working_dir: /app
+    command: ["java", "-jar", "app.jar"]
     depends_on:
       db:
         condition: service_healthy
   db:
     image: postgres:15
     environment:
+      POSTGRES_DB: postgres_db
       POSTGRES_USER: postgres_username
       POSTGRES_PASSWORD: postgres_password
     ports:

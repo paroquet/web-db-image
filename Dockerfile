@@ -6,10 +6,16 @@ COPY settings.gradle.kts .
 RUN gradle dependencies
 
 COPY . .
-RUN gradle bootJar
+RUN gradle bootJar --no-daemon --parallel --build-cache
 
-FROM amazoncorretto:21-alpine
+FROM eclipse-temurin:21-jre-alpine
+
+# 创建并切换用户
+RUN addgroup --system spring && adduser --system spring --ingroup spring
+USER spring:spring
 WORKDIR /app
+
 COPY --from=builder /app/build/libs/*.jar app.jar
+
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
